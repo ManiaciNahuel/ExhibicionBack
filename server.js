@@ -13,11 +13,13 @@ const usuariosRoutes = require('./routes/usuarios');
 const productosRoutes = require('./routes/productos');
 const ubicacionesRoutes = require('./routes/ubicaciones');
 
+
 app.use('/sucursales', sucursalesRoutes);
 app.use('/usuarios', usuariosRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/productos', productosRoutes);
 app.use('/ubicaciones', ubicacionesRoutes);
+app.use('/auth', require('./routes/auth'));
 
 // Iniciar el servidor y conectar a la base de datos
 const PORT = process.env.PORT || 3000;

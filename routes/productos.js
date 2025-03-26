@@ -12,7 +12,8 @@ router.get('/:codebar', async (req, res) => {
         const producto = await dbEmpresa.query(
             `SELECT CodPlex, codebar, Producto, Presentaci, Precio, Costo, Activo 
              FROM medicamentos 
-             WHERE codebar = :codebar LIMIT 1`,
+             WHERE medicamentos.IDPerfumeria = 114
+             AND codebar = :codebar LIMIT 5`,
             {
                 replacements: { codebar },
                 type: QueryTypes.SELECT

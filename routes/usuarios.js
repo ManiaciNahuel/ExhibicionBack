@@ -9,7 +9,7 @@ router.post('/', async (req, res) => {
         const usuario = await Usuario.create({ nombre, email, password, rol, sucursalId });
         res.status(201).json(usuario);
     } catch (error) {
-        res.status(500).json({ error: 'Error al crear el usuario' });
+        res.status(500).json({ error: 'Error al crear el usuario', detalle: error.message });
     }
 });
 
