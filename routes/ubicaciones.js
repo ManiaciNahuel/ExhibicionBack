@@ -82,6 +82,52 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /ubicaciones/todas?sucursalId=8
+router.get('/todas', async (req, res) => {
+  const { sucursalId } = req.query;
+
+  try {
+    const registros = await ProductoUbicacion.findAll({
+      where: { sucursalId },
+      order: [['ubicacion', 'ASC']],
+    });
+
+    const agrupado = {};
+
+    for (const r of registros) {
+      const codebar = r.codebar;
+      const [producto] = await dbEmpresa.query(`
+        SELECT Producto, Presentaci FROM medicamentos
+        WHERE codebar = :codebar AND IDPerfumeria = 114
+        LIMIT 1
+      `, {
+        replacements: { codebar },
+        type: dbEmpresa.QueryTypes.SELECT
+      });
+
+      const ubic = r.ubicacion;
+      if (!agrupado[ubic]) agrupado[ubic] = [];
+
+      agrupado[ubic].push({
+        codebar: r.codebar,
+        cantidad: r.cantidad,
+        nombre: producto?.Producto || "Sin nombre"
+      });
+    }
+
+    const resultado = Object.entries(agrupado).map(([ubicacion, productos]) => ({
+      ubicacion,
+      productos
+    }));
+
+    res.json(resultado);
+  } catch (error) {
+    console.error("❌ Error al traer ubicaciones completas:", error);
+    res.status(500).json({ error: "Error al traer ubicaciones" });
+  }
+});
+
+
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const { cantidad, sucursalId } = req.body;
