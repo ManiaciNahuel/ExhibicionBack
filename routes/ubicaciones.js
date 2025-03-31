@@ -31,16 +31,6 @@ router.post('/', async (req, res) => {
 
 
   try {
-    // Verificamos que la ubicación esté permitida para esta sucursal
-    console.log("Buscando ubicación:", {
-      idSucursal: sucursalId,
-      tipo,
-      numeroUbicacion: numero,
-      subdivision,
-      numeroSubdivision
-    });
-
-
     const ubicacionPermitida = await UbicacionesPermitidas.findOne({
       where: {
         idSucursal: sucursalId,
@@ -117,12 +107,12 @@ router.get('/permitidas', async (req, res) => {
 router.get('/', async (req, res) => {
   const { sucursal, ubicacion } = req.query;
 
+
   if (!sucursal || !ubicacion) {
     return res.status(400).json({ error: 'Faltan parámetros: sucursal y/o ubicación' });
   }
 
   try {
-    // Traemos los registros desde nuestra base
     const registros = await ProductoUbicacion.findAll({
       where: {
         sucursalId: sucursal,
@@ -131,18 +121,12 @@ router.get('/', async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    // Traer info del producto desde base externa (por cada codebar único)
+
     const resultado = [];
 
     for (const r of registros) {
       const [producto] = await dbEmpresa.query(
-        `
-          SELECT Producto, Presentaci
-          FROM medicamentos
-          WHERE codebar = :codebar
-          AND IDPerfumeria = 114
-          LIMIT 1
-          `,
+        `SELECT Producto, Presentaci FROM medicamentos WHERE codebar = :codebar AND IDPerfumeria = 114 LIMIT 1`,
         {
           replacements: { codebar: r.codebar },
           type: dbEmpresa.QueryTypes.SELECT
@@ -164,6 +148,7 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Error al consultar ubicaciones' });
   }
 });
+
 
 // GET /ubicaciones/todas?sucursalId=8
 router.get('/todas', async (req, res) => {
@@ -281,6 +266,52 @@ router.delete('/:id', async (req, res) => {
   } catch (err) {
     console.error('❌ Error al eliminar producto de ubicación:', err);
     res.status(500).json({ error: 'Error interno al eliminar' });
+  }
+});
+
+// GET /ubicaciones/producto?codebar=123&sucursalId=8
+router.get('/producto', async (req, res) => {
+  const { codebar, sucursalId } = req.query;
+
+  if (!codebar || !sucursalId) {
+    return res.status(400).json({ error: 'Faltan parámetros' });
+  }
+
+  try {
+    const ubicaciones = await ProductoUbicacion.findAll({
+      where: {
+        codebar,
+        sucursalId
+      },
+      order: [['ubicacion', 'ASC']]
+    });
+
+    res.json(ubicaciones);
+  } catch (err) {
+    console.error('❌ Error en /ubicaciones/producto:', err);
+    res.status(500).json({ error: 'Error interno al buscar ubicaciones del producto' });
+  }
+});
+
+// 🔎 Buscar ubicaciones de un producto por código de barras
+router.get('/producto/:codebar', async (req, res) => {
+  const { codebar } = req.params;
+  const { sucursalId } = req.query;
+
+  if (!codebar || !sucursalId) {
+    return res.status(400).json({ error: 'Faltan parámetros: codebar o sucursalId' });
+  }
+
+  try {
+    const ubicaciones = await ProductoUbicacion.findAll({
+      where: { codebar, sucursalId },
+      attributes: ['id', 'tipo', 'numero', 'subdivision', 'numeroSubdivision', 'cantidad']
+    });
+
+    res.json(ubicaciones);
+  } catch (err) {
+    console.error("❌ Error al obtener ubicaciones del producto:", err);
+    res.status(500).json({ error: 'Error interno al obtener ubicaciones del producto' });
   }
 });
 

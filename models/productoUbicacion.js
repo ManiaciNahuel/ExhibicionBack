@@ -31,6 +31,10 @@ module.exports = (sequelize, DataTypes) => {
       fechaRegistro: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW
+      },
+      numeroSubdivision: {
+        type: DataTypes.INTEGER,
+        allowNull: false
       }
     });
   
