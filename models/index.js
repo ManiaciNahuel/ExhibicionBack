@@ -14,6 +14,8 @@ const Sucursal = require('./sucursal')(sequelize, DataTypes);
 const Usuario = require('./usuario')(sequelize, DataTypes);
 const Ubicacion = require('./ubicacion')(sequelize, DataTypes);
 const ProductoUbicacion = require('./productoUbicacion')(sequelize, DataTypes);
+const UbicacionesPermitidas = require('./ubicacionesPermitidas')(sequelize, Sequelize.DataTypes);
+
 
 // ⚠️ Si usás el modelo de Producto desde la otra base, NO lo declares acá.
 // Si llegás a usar un modelo de Producto interno (no recomendado en tu caso), deberías definirlo igual.
@@ -33,5 +35,6 @@ module.exports = {
     Sucursal,
     Usuario,
     Ubicacion,
-    ProductoUbicacion
+    ProductoUbicacion,
+    UbicacionesPermitidas
 };
