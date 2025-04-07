@@ -14,12 +14,18 @@ router.post('/', async (req, res) => {
     numero,
     subdivision,
     numeroSubdivision: rawNumeroSubdivision,
+    division,
+    numeroDivision: rawNumeroDivision,
     cantidad,
     sucursalId
   } = req.body;
 
-  const numeroSubdivision = rawNumeroSubdivision !== null
+  const numeroSubdivision = rawNumeroSubdivision !== null && rawNumeroSubdivision !== undefined
     ? parseInt(rawNumeroSubdivision)
+    : null;
+
+  const numeroDivision = rawNumeroDivision !== null && rawNumeroDivision !== undefined
+    ? parseInt(rawNumeroDivision)
     : null;
 
 
@@ -37,9 +43,12 @@ router.post('/', async (req, res) => {
         tipo,
         numeroUbicacion: numero,
         subdivision,
-        numeroSubdivision: numeroSubdivision, // ahora seguro es null o número válido
+        numeroSubdivision,
+        division,
+        numeroDivision
       }
     });
+    
 
 
     if (!ubicacionPermitida) {
@@ -47,18 +56,21 @@ router.post('/', async (req, res) => {
     }
 
     // Creamos la ubicación del producto
-    const ubicacion = `${tipo}${numero}${subdivision || ''}${numeroSubdivision || ''}`;
+    const ubicacion = `${tipo}${numero}${division || ''}${numeroDivision || ''}${subdivision || ''}${numeroSubdivision || ''}`;
 
-    const nuevaUbicacion = await ProductoUbicacion.create({
-      codebar,
-      tipo,
-      numero,
-      subdivision,
-      numeroSubdivision,
-      cantidad,
-      sucursalId,
-      ubicacion // ✅ ahora sí mandamos el campo obligatorio
-    });
+      const nuevaUbicacion = await ProductoUbicacion.create({
+        codebar,
+        tipo,
+        numero,
+        subdivision,
+        numeroSubdivision,
+        division,
+        numeroDivision,
+        cantidad,
+        sucursalId,
+        ubicacion
+      });
+
 
 
     res.json(nuevaUbicacion);
@@ -180,7 +192,7 @@ router.get('/todas', async (req, res) => {
         id: r.id,
         codebar: r.codebar,
         cantidad: r.cantidad,
-        nombre: producto?.Producto || "Sin nombre"
+        nombre: `${producto.Producto || ''} ${producto.Presentaci || ''}`.trim() || 'Sin nombre'
       });
 
     }

@@ -24,6 +24,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true
       },
+      division: {
+        type: DataTypes.STRING(1),
+        allowNull: true
+      },
+      numeroDivision: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+      },      
       idCategoria: {
         type: DataTypes.INTEGER,
         allowNull: true
