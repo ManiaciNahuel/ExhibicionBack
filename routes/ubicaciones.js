@@ -213,30 +213,36 @@ router.get('/todas', async (req, res) => {
 router.get('/txt', async (req, res) => {
   const { sucursal, tipo, numero } = req.query;
 
+  console.log("📥 Parámetros recibidos:");
+  console.log("Sucursal:", sucursal);
+  console.log("Tipo:", tipo);
+  console.log("Número:", numero);
+
   if (!sucursal || !tipo || !numero) {
+    console.warn("⚠️ Faltan datos en la solicitud.");
     return res.status(400).json({ error: 'Faltan datos' });
   }
 
   try {
-    const ubicaciones = await Ubicacion.findAll({
+    const productos = await Ubicacion.findAll({
       where: {
-        sucursalId: sucursal,
+        sucursalId: Number(sucursal),
         tipo,
-        numero
+        numero: Number(numero)
       },
-      include: [{ model: Producto, attributes: ['codebar'] }]
+      include: [Producto]
     });
 
-    const lineas = ubicaciones
-      .flatMap(u => u.Productos.map(p => p.codebar))
-      .filter(Boolean);
+    console.log(`📦 Se encontraron ${productos.length} productos para exportar.`);
 
-    const contenido = lineas.join('\n');
+    const contenido = productos.map(p => `${p.codebar || ''};`).join('\n');
+    
+    res.setHeader('Content-Disposition', 'attachment; filename=productos.txt');
     res.setHeader('Content-Type', 'text/plain');
-    res.setHeader('Content-Disposition', `attachment; filename=${tipo}${numero}.txt`);
     res.send(contenido);
-  } catch (error) {
-    console.error('❌ Error al generar TXT:', error);
+
+  } catch (err) {
+    console.error("❌ Error generando archivo:", err);
     res.status(500).json({ error: 'Error al generar archivo' });
   }
 });
