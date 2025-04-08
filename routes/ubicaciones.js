@@ -3,6 +3,7 @@ const router = express.Router();
 const { ProductoUbicacion, sequelize, UbicacionesPermitidas } = require('../models');
 const dbEmpresa = require('../config/db_empresa');
 const db = require('../models');
+const { Ubicacion, Producto } = require('../models');
 
 // ubicaciones.js (backend)
 
@@ -211,34 +212,38 @@ router.get('/todas', async (req, res) => {
 
 // routes/ubicaciones.js
 router.get('/txt', async (req, res) => {
-  const { Ubicacion, Producto } = require('../models');
-
-  const { sucursal, tipo, numero } = req.query;
+  const { sucursal, tipo, numero, division, numeroDivision } = req.query;
 
   console.log("📥 Parámetros recibidos:");
   console.log("Sucursal:", sucursal);
   console.log("Tipo:", tipo);
   console.log("Número:", numero);
+  if (division) console.log("División:", division);
+  if (numeroDivision) console.log("Nro División:", numeroDivision);
 
   if (!sucursal || !tipo || !numero) {
-    console.warn("⚠️ Faltan datos en la solicitud.");
     return res.status(400).json({ error: 'Faltan datos' });
   }
 
+  const filtros = {
+    sucursalId: Number(sucursal),
+    tipo,
+    numero: Number(numero)
+  };
+
+  if (division && numeroDivision) {
+    filtros.division = division;
+    filtros.numeroDivision = Number(numeroDivision);
+  }
+
   try {
-    const productos = await Ubicacion.findAll({
-      where: {
-        sucursalId: Number(sucursal),
-        tipo,
-        numero: Number(numero)
-      },
-      include: [Producto]
+    const registros = await db.ProductoUbicacion.findAll({
+      where: filtros,
+      order: [['ubicacion', 'ASC']]
     });
 
-    console.log(`📦 Se encontraron ${productos.length} productos para exportar.`);
+    const contenido = registros.map(p => `${p.codebar || ''};`).join('\n');
 
-    const contenido = productos.map(p => `${p.codebar || ''};`).join('\n');
-    
     res.setHeader('Content-Disposition', 'attachment; filename=productos.txt');
     res.setHeader('Content-Type', 'text/plain');
     res.send(contenido);
@@ -248,6 +253,7 @@ router.get('/txt', async (req, res) => {
     res.status(500).json({ error: 'Error al generar archivo' });
   }
 });
+
 
 
 router.put('/:id', async (req, res) => {
