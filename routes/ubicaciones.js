@@ -244,7 +244,22 @@ router.get('/txt', async (req, res) => {
 
     const contenido = registros.map(p => `${p.codebar || ''};`).join('\n');
 
-    res.setHeader('Content-Disposition', 'attachment; filename=productos.txt');
+    // 📁 Generar nombre de archivo según los datos
+    let nombre = tipo === 'M'
+      ? `M${numero}`
+      : tipo === 'G'
+        ? `G${numero}`
+        : tipo === 'H'
+          ? `H${numero}`
+          : `U${numero}`;
+
+    if (division && numeroDivision) {
+      nombre += ` ${division === 'P' ? 'P' : 'L'} ${numeroDivision}`;
+    }
+
+    nombre = nombre.replace(/\s+/g, '_'); // reemplaza espacios por _
+
+    res.setHeader('Content-Disposition', `attachment; filename=${nombre}.txt`);
     res.setHeader('Content-Type', 'text/plain');
     res.send(contenido);
 
@@ -253,6 +268,7 @@ router.get('/txt', async (req, res) => {
     res.status(500).json({ error: 'Error al generar archivo' });
   }
 });
+
 
 
 
