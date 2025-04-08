@@ -211,6 +211,8 @@ router.get('/todas', async (req, res) => {
 
 // routes/ubicaciones.js
 router.get('/txt', async (req, res) => {
+  const { Ubicacion, Producto } = require('../models');
+
   const { sucursal, tipo, numero } = req.query;
 
   console.log("📥 Parámetros recibidos:");
