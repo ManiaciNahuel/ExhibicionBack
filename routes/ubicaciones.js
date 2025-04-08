@@ -212,28 +212,47 @@ router.get('/todas', async (req, res) => {
 
 // routes/ubicaciones.js
 router.get('/txt', async (req, res) => {
-  const { sucursal, tipo, numero, division, numeroDivision } = req.query;
+  const { sucursal, tipo, numero, division, numeroDivision, ubicacion } = req.query;
 
   console.log("📥 Parámetros recibidos:");
   console.log("Sucursal:", sucursal);
-  console.log("Tipo:", tipo);
-  console.log("Número:", numero);
-  if (division) console.log("División:", division);
-  if (numeroDivision) console.log("Nro División:", numeroDivision);
+  if (ubicacion) {
+    console.log("Ubicación:", ubicacion);
+  } else {
+    console.log("Tipo:", tipo);
+    console.log("Número:", numero);
+    if (division) console.log("División:", division);
+    if (numeroDivision) console.log("Nro División:", numeroDivision);
+  }
 
-  if (!sucursal || !tipo || !numero) {
-    return res.status(400).json({ error: 'Faltan datos' });
+  if (!sucursal) {
+    return res.status(400).json({ error: 'Falta el parámetro sucursal' });
   }
 
   const filtros = {
-    sucursalId: Number(sucursal),
-    tipo,
-    numero: Number(numero)
+    sucursalId: Number(sucursal)
   };
 
-  if (division && numeroDivision) {
-    filtros.division = division;
-    filtros.numeroDivision = Number(numeroDivision);
+  let nombreArchivo = '';
+
+  if (ubicacion) {
+    filtros.ubicacion = ubicacion;
+    nombreArchivo = ubicacion;
+  } else {
+    if (!tipo || !numero) {
+      return res.status(400).json({ error: 'Faltan datos para generar el archivo' });
+    }
+
+    filtros.tipo = tipo;
+    filtros.numero = Number(numero);
+
+    nombreArchivo = tipo + numero;
+
+    if (division && numeroDivision) {
+      filtros.division = division;
+      filtros.numeroDivision = Number(numeroDivision);
+      nombreArchivo += `_${division}${numeroDivision}`;
+    }
   }
 
   try {
@@ -244,31 +263,14 @@ router.get('/txt', async (req, res) => {
 
     const contenido = registros.map(p => `${p.codebar || ''};`).join('\n');
 
-    // 📁 Generar nombre de archivo según los datos
-    let nombre = tipo === 'M'
-      ? `M${numero}`
-      : tipo === 'G'
-        ? `G${numero}`
-        : tipo === 'H'
-          ? `H${numero}`
-          : `U${numero}`;
-
-    if (division && numeroDivision) {
-      nombre += ` ${division === 'P' ? 'P' : 'L'} ${numeroDivision}`;
-    }
-
-    nombre = nombre.replace(/\s+/g, '_'); // reemplaza espacios por _
-
-    res.setHeader('Content-Disposition', `attachment; filename=${nombre}.txt`);
+    res.setHeader('Content-Disposition', `attachment; filename=${nombreArchivo}.txt`);
     res.setHeader('Content-Type', 'text/plain');
     res.send(contenido);
-
   } catch (err) {
     console.error("❌ Error generando archivo:", err);
     res.status(500).json({ error: 'Error al generar archivo' });
   }
 });
-
 
 
 
