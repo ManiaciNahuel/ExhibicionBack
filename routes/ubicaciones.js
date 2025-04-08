@@ -209,6 +209,38 @@ router.get('/todas', async (req, res) => {
   }
 });
 
+// routes/ubicaciones.js
+router.get('/txt', async (req, res) => {
+  const { sucursal, tipo, numero } = req.query;
+
+  if (!sucursal || !tipo || !numero) {
+    return res.status(400).json({ error: 'Faltan datos' });
+  }
+
+  try {
+    const ubicaciones = await Ubicacion.findAll({
+      where: {
+        sucursalId: sucursal,
+        tipo,
+        numero
+      },
+      include: [{ model: Producto, attributes: ['codebar'] }]
+    });
+
+    const lineas = ubicaciones
+      .flatMap(u => u.Productos.map(p => p.codebar))
+      .filter(Boolean);
+
+    const contenido = lineas.join('\n');
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Content-Disposition', `attachment; filename=${tipo}${numero}.txt`);
+    res.send(contenido);
+  } catch (error) {
+    console.error('❌ Error al generar TXT:', error);
+    res.status(500).json({ error: 'Error al generar archivo' });
+  }
+});
+
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
