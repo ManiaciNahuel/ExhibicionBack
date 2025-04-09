@@ -1,3 +1,4 @@
+// config/db_empresa.js
 require('dotenv').config();
 const { Sequelize } = require('sequelize');
 
