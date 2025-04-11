@@ -217,7 +217,6 @@ router.get('/txt', async (req, res) => {
 
   console.log("📥 Parámetros recibidos:");
   console.log("Sucursal:", sucursal);
-  // Si se envía 'ubicacion' la usamos para filtrar
   if (ubicacion) {
     console.log("Ubicación:", ubicacion);
   } else {
@@ -238,8 +237,8 @@ router.get('/txt', async (req, res) => {
   let nombreArchivo = '';
 
   if (ubicacion) {
-    // Si la ubicación es corta (por ejemplo, solo "M6"), usamos LIKE para abarcar todas sus subdivisiones
-    if (ubicacion.length < 4) {
+    // Si la ubicación es corta (por ejemplo, "G8P1" o "M6") utilizamos LIKE para abarcar todas sus subdivisiones
+    if (ubicacion.length <= 4) {
       filtros.ubicacion = { [Op.like]: `${ubicacion}%` };
     } else {
       filtros.ubicacion = ubicacion;
@@ -252,10 +251,17 @@ router.get('/txt', async (req, res) => {
     filtros.tipo = tipo;
     filtros.numero = Number(numero);
     nombreArchivo = tipo + numero;
-    if (division && numeroDivision) {
-      filtros.division = division;
-      filtros.numeroDivision = Number(numeroDivision);
-      nombreArchivo += `_${division}${numeroDivision}`;
+
+    if (tipo === 'G') {
+      // Para las góndolas, si no se proporcionó division y numeroDivision,
+      // usamos LIKE para obtener todas las subdivisiones
+      if (!division || !numeroDivision) {
+        filtros.ubicacion = { [Op.like]: `${tipo}${numero}%` };
+      } else {
+        filtros.division = division;
+        filtros.numeroDivision = Number(numeroDivision);
+        nombreArchivo += `_${division}${numeroDivision}`;
+      }
     }
   }
 
@@ -265,7 +271,7 @@ router.get('/txt', async (req, res) => {
       order: [['ubicacion', 'ASC']]
     });
 
-    console.log(`📦 Se encontraron ${registros.length} registros para filtrar.`);
+    console.log(`📦 Se encontraron ${registros.length} registros para exportar.`);
     const contenido = registros.map(p => `${p.codebar || ''};`).join('\n');
 
     res.setHeader('Content-Disposition', `attachment; filename=${nombreArchivo}.txt`);
@@ -277,8 +283,7 @@ router.get('/txt', async (req, res) => {
   }
 });
 
-
-
+module.exports = router;
 
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
