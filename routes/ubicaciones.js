@@ -49,7 +49,7 @@ router.post('/', async (req, res) => {
         numeroDivision
       }
     });
-    
+
 
 
     if (!ubicacionPermitida) {
@@ -59,18 +59,18 @@ router.post('/', async (req, res) => {
     // Creamos la ubicación del producto
     const ubicacion = `${tipo}${numero}${division || ''}${numeroDivision || ''}${subdivision || ''}${numeroSubdivision || ''}`;
 
-      const nuevaUbicacion = await ProductoUbicacion.create({
-        codebar,
-        tipo,
-        numero,
-        subdivision,
-        numeroSubdivision,
-        division,
-        numeroDivision,
-        cantidad,
-        sucursalId,
-        ubicacion
-      });
+    const nuevaUbicacion = await ProductoUbicacion.create({
+      codebar,
+      tipo,
+      numero,
+      subdivision,
+      numeroSubdivision,
+      division,
+      numeroDivision,
+      cantidad,
+      sucursalId,
+      ubicacion
+    });
 
 
 
@@ -210,12 +210,13 @@ router.get('/todas', async (req, res) => {
   }
 });
 
-// routes/ubicaciones.js
+// GET /ubicaciones/txt
 router.get('/txt', async (req, res) => {
   const { sucursal, tipo, numero, division, numeroDivision, ubicacion } = req.query;
 
   console.log("📥 Parámetros recibidos:");
   console.log("Sucursal:", sucursal);
+  // Si se envía 'ubicacion' la usamos para filtrar
   if (ubicacion) {
     console.log("Ubicación:", ubicacion);
   } else {
@@ -236,18 +237,20 @@ router.get('/txt', async (req, res) => {
   let nombreArchivo = '';
 
   if (ubicacion) {
-    filtros.ubicacion = ubicacion;
+    // Si la ubicación es corta (por ejemplo, solo "M6"), usamos LIKE para abarcar todas sus subdivisiones
+    if (ubicacion.length < 4) {
+      filtros.ubicacion = { [Op.like]: `${ubicacion}%` };
+    } else {
+      filtros.ubicacion = ubicacion;
+    }
     nombreArchivo = ubicacion;
   } else {
     if (!tipo || !numero) {
       return res.status(400).json({ error: 'Faltan datos para generar el archivo' });
     }
-
     filtros.tipo = tipo;
     filtros.numero = Number(numero);
-
     nombreArchivo = tipo + numero;
-
     if (division && numeroDivision) {
       filtros.division = division;
       filtros.numeroDivision = Number(numeroDivision);
@@ -261,6 +264,7 @@ router.get('/txt', async (req, res) => {
       order: [['ubicacion', 'ASC']]
     });
 
+    console.log(`📦 Se encontraron ${registros.length} registros para filtrar.`);
     const contenido = registros.map(p => `${p.codebar || ''};`).join('\n');
 
     res.setHeader('Content-Disposition', `attachment; filename=${nombreArchivo}.txt`);
@@ -271,6 +275,7 @@ router.get('/txt', async (req, res) => {
     res.status(500).json({ error: 'Error al generar archivo' });
   }
 });
+
 
 
 
