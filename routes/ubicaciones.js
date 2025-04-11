@@ -4,6 +4,7 @@ const { ProductoUbicacion, sequelize, UbicacionesPermitidas } = require('../mode
 const dbEmpresa = require('../config/db_empresa');
 const db = require('../models');
 const { Ubicacion, Producto } = require('../models');
+const { Op } = require('sequelize');
 
 // ubicaciones.js (backend)
 
