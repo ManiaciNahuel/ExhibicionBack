@@ -5,6 +5,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    // Nuevo campo: codplex
+    codplex: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     tipo: {
       type: DataTypes.STRING,
       allowNull: false

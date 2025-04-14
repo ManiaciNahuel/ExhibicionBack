@@ -14,11 +14,12 @@ router.get('/:codebar', async (req, res) => {
          SELECT productoscodebars.IDProducto AS IDProducto, productoscodebars.codebar AS Codebar
          FROM productoscodebars 
          LEFT JOIN medicamentos ON medicamentos.CodPlex = productoscodebars.IDProducto
-         WHERE medicamentos.Activo = 's'
+         WHERE medicamentos.Activo = 's'AND medicamentos.IDPerfumeria = 114
          UNION ALL
          SELECT medicamentos.CodPlex AS IDProducto, medicamentos.Codebar AS Codebar
          FROM medicamentos
          WHERE medicamentos.Activo = 's'
+         AND medicamentos.IDPerfumeria = 114
        ) AS codigos
        WHERE codigos.Codebar = :codebar
        LIMIT 1`,

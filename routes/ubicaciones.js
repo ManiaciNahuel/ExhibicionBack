@@ -60,6 +60,7 @@ router.post('/', async (req, res) => {
 
     const nuevaUbicacion = await ProductoUbicacion.create({
       codebar,
+      codplex: producto.CodPlex,
       tipo,
       numero,
       subdivision,
@@ -70,9 +71,6 @@ router.post('/', async (req, res) => {
       sucursalId,
       ubicacion
     });
-
-
-
     res.json(nuevaUbicacion);
   } catch (error) {
     console.error("❌ Error al crear producto:", error);
