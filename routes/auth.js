@@ -4,7 +4,6 @@ const router = express.Router();
 const { Usuario, Sucursal } = require('../models');
 
 router.post('/login', async (req, res) => {
-  console.log("Body recibido:", req.body);
   const { email, password } = req.body;
 
   if (!email || !password) {

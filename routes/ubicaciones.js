@@ -31,8 +31,6 @@ router.post('/', async (req, res) => {
     : null;
 
 
-  console.log("📦 POST /ubicaciones -> Body recibido:", req.body);
-
   if (!codebar || !tipo || !numero || !sucursalId || !cantidad) {
     return res.status(400).json({ error: 'Faltan datos obligatorios en la solicitud' });
   }
@@ -215,17 +213,6 @@ router.get('/todas', async (req, res) => {
 router.get('/txt', async (req, res) => {
   const { sucursal, tipo, numero, division, numeroDivision, ubicacion } = req.query;
 
-  console.log("📥 Parámetros recibidos:");
-  console.log("Sucursal:", sucursal);
-  if (ubicacion) {
-    console.log("Ubicación:", ubicacion);
-  } else {
-    console.log("Tipo:", tipo);
-    console.log("Número:", numero);
-    if (division) console.log("División:", division);
-    if (numeroDivision) console.log("Nro División:", numeroDivision);
-  }
-
   if (!sucursal) {
     return res.status(400).json({ error: 'Falta el parámetro sucursal' });
   }
@@ -271,7 +258,6 @@ router.get('/txt', async (req, res) => {
       order: [['ubicacion', 'ASC']]
     });
 
-    console.log(`📦 Se encontraron ${registros.length} registros para exportar.`);
     const contenido = registros.map(p => `${p.codebar || ''};`).join('\n');
 
     res.setHeader('Content-Disposition', `attachment; filename=${nombreArchivo}.txt`);
