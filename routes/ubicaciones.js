@@ -170,14 +170,15 @@ router.get('/', async (req, res) => {
         type: dbEmpresa.QueryTypes.SELECT
       });
 
-
       resultado.push({
         ...r.toJSON(),
+        codplex: r.codplex, // 👈 esto lo agregás
         producto: producto ? {
           nombre: producto.Producto,
           presentacion: producto.Presentaci
         } : null
       });
+
     }
 
     res.json(resultado);
