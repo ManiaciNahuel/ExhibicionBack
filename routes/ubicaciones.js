@@ -55,9 +55,21 @@ router.post('/', async (req, res) => {
       return res.status(403).json({ error: 'Ubicación no permitida para esta sucursal' });
     }
 
-    // Buscar producto en la base de datos externa
     const [producto] = await dbEmpresa.query(
-      `SELECT CodPlex FROM medicamentos WHERE codebar = :codebar AND (IDPerfumeria = 114 OR IDPerfumeria IS NULL) LIMIT 1`,
+      `SELECT * FROM (
+     SELECT productoscodebars.IDProducto AS IDProducto, productoscodebars.codebar AS Codebar
+     FROM productoscodebars 
+     LEFT JOIN medicamentos ON medicamentos.CodPlex = productoscodebars.IDProducto
+     WHERE medicamentos.Activo = 's'
+       AND (medicamentos.IDPerfumeria = 114 OR medicamentos.IDPerfumeria IS NULL)
+     UNION ALL
+     SELECT medicamentos.CodPlex AS IDProducto, medicamentos.Codebar AS Codebar
+     FROM medicamentos
+     WHERE medicamentos.Activo = 's'
+       AND (medicamentos.IDPerfumeria = 114 OR medicamentos.IDPerfumeria IS NULL)
+   ) AS codigos
+   WHERE codigos.Codebar = :codebar
+   LIMIT 1`,
       {
         replacements: { codebar },
         type: dbEmpresa.QueryTypes.SELECT
@@ -65,8 +77,9 @@ router.post('/', async (req, res) => {
     );
 
     if (!producto) {
-      return res.status(404).json({ error: 'Producto no encontrado en la base de medicamentos' });
+      return res.status(404).json({ error: 'Producto no encontrado con ese código de barras' });
     }
+
     // Creamos la ubicación del producto
     const ubicacion = `${tipo}${numero}${division || ''}${numeroDivision || ''}${subdivision || ''}${numeroSubdivision || ''}`;
 
