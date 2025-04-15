@@ -160,13 +160,16 @@ router.get('/', async (req, res) => {
     const resultado = [];
 
     for (const r of registros) {
-      const [producto] = await dbEmpresa.query(
-        `SELECT Producto, Presentaci FROM medicamentos WHERE CodPlex = :codplex AND IDPerfumeria = 114 LIMIT 1`,
-        {
-          replacements: { codebar: r.codebar },
-          type: dbEmpresa.QueryTypes.SELECT
-        }
-      );
+      const [producto] = await dbEmpresa.query(`
+        SELECT Producto, Presentaci 
+        FROM medicamentos 
+        WHERE CodPlex = :codplex 
+        LIMIT 1
+      `, {
+        replacements: { codplex: r.codplex },
+        type: dbEmpresa.QueryTypes.SELECT
+      });
+
 
       resultado.push({
         ...r.toJSON(),
@@ -184,8 +187,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-
-// GET /ubicaciones/todas?sucursalId=8
 router.get('/todas', async (req, res) => {
   const { sucursalId } = req.query;
 
@@ -198,13 +199,12 @@ router.get('/todas', async (req, res) => {
     const agrupado = {};
 
     for (const r of registros) {
-      const codebar = r.codebar;
       const [producto] = await dbEmpresa.query(`
         SELECT Producto, Presentaci FROM medicamentos
-        WHERE codebar = :codebar AND IDPerfumeria = 114
+        WHERE CodPlex = :codplex
         LIMIT 1
       `, {
-        replacements: { codebar },
+        replacements: { codplex: r.codplex },
         type: dbEmpresa.QueryTypes.SELECT
       });
 
@@ -215,9 +215,8 @@ router.get('/todas', async (req, res) => {
         id: r.id,
         codebar: r.codebar,
         cantidad: r.cantidad,
-        nombre: `${producto.Producto || ''} ${producto.Presentaci || ''}`.trim() || 'Sin nombre'
+        nombre: `${producto?.Producto || ''} ${producto?.Presentaci || ''}`.trim() || 'Sin nombre'
       });
-
     }
 
     const resultado = Object.entries(agrupado).map(([ubicacion, productos]) => ({
@@ -231,6 +230,7 @@ router.get('/todas', async (req, res) => {
     res.status(500).json({ error: "Error al traer ubicaciones" });
   }
 });
+
 
 // GET /ubicaciones/txt
 router.get('/txt', async (req, res) => {
