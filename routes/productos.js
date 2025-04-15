@@ -11,18 +11,19 @@ router.get('/:codebar', async (req, res) => {
         // Realizamos la unión de las dos tablas para encontrar el IDProducto (CodPlex)
         const codigoResult = await dbEmpresa.query(
             `SELECT * FROM (
-         SELECT productoscodebars.IDProducto AS IDProducto, productoscodebars.codebar AS Codebar
-         FROM productoscodebars 
-         LEFT JOIN medicamentos ON medicamentos.CodPlex = productoscodebars.IDProducto
-         WHERE medicamentos.Activo = 's'AND medicamentos.IDPerfumeria = 114
-         UNION ALL
-         SELECT medicamentos.CodPlex AS IDProducto, medicamentos.Codebar AS Codebar
-         FROM medicamentos
-         WHERE medicamentos.Activo = 's'
-         AND medicamentos.IDPerfumeria = 114
-       ) AS codigos
-       WHERE codigos.Codebar = :codebar
-       LIMIT 1`,
+               SELECT productoscodebars.IDProducto AS IDProducto, productoscodebars.codebar AS Codebar
+               FROM productoscodebars 
+               LEFT JOIN medicamentos ON medicamentos.CodPlex = productoscodebars.IDProducto
+               WHERE medicamentos.Activo = 's'
+                 AND (medicamentos.IDPerfumeria = 114 OR medicamentos.IDPerfumeria IS NULL)
+               UNION ALL
+               SELECT medicamentos.CodPlex AS IDProducto, medicamentos.Codebar AS Codebar
+               FROM medicamentos
+               WHERE medicamentos.Activo = 's'
+                 AND (medicamentos.IDPerfumeria = 114 OR medicamentos.IDPerfumeria IS NULL)
+             ) AS codigos
+             WHERE codigos.Codebar = :codebar
+             LIMIT 1`,
             {
                 replacements: { codebar },
                 type: QueryTypes.SELECT
@@ -36,9 +37,10 @@ router.get('/:codebar', async (req, res) => {
         // Una vez obtenido el IDProducto (CodPlex), consultamos la tabla medicamentos para traer los datos completos
         const producto = await dbEmpresa.query(
             `SELECT CodPlex, codebar, Producto, Presentaci, Precio, Costo, Activo
-       FROM medicamentos 
-       WHERE CodPlex = :codPlex
-       LIMIT 1`,
+             FROM medicamentos 
+             WHERE CodPlex = :codPlex
+               AND (IDPerfumeria = 114 OR IDPerfumeria IS NULL)
+             LIMIT 1`,
             {
                 replacements: { codPlex: codigoResult[0].IDProducto },
                 type: QueryTypes.SELECT
@@ -56,5 +58,6 @@ router.get('/:codebar', async (req, res) => {
         res.status(500).json({ error: 'Error al buscar el producto en la base externa' });
     }
 });
+
 
 module.exports = router;
