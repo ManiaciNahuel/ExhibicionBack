@@ -161,7 +161,7 @@ router.get('/', async (req, res) => {
 
     for (const r of registros) {
       const [producto] = await dbEmpresa.query(
-        `SELECT Producto, Presentaci FROM medicamentos WHERE codebar = :codebar AND IDPerfumeria = 114 LIMIT 1`,
+        `SELECT Producto, Presentaci FROM medicamentos WHERE CodPlex = :codplex AND IDPerfumeria = 114 LIMIT 1`,
         {
           replacements: { codebar: r.codebar },
           type: dbEmpresa.QueryTypes.SELECT
@@ -323,16 +323,16 @@ router.put('/:id', async (req, res) => {
 
 // GET /ubicaciones/check?codebar=123&sucursalId=8
 router.get('/check', async (req, res) => {
-  const { codebar, sucursalId } = req.query;
+  const { codplex, sucursalId } = req.query;
 
-  if (!codebar || !sucursalId) {
+  if (!codplex || !sucursalId) {
     return res.status(400).json({ error: 'Faltan parámetros' });
   }
 
   try {
     const existentes = await ProductoUbicacion.findAll({
       where: {
-        codebar,
+        codplex,
         sucursalId
       }
     });
