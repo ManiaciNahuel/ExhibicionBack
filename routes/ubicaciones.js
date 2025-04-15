@@ -85,7 +85,7 @@ router.post('/', async (req, res) => {
 
     const nuevaUbicacion = await ProductoUbicacion.create({
       codebar,
-      codplex: producto.CodPlex,
+      codplex: producto.IDProducto,
       tipo,
       numero,
       subdivision,
